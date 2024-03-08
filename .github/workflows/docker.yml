@@ -21,6 +21,7 @@ env:
 jobs:
   release-docker:
     runs-on: ubuntu-latest
+    environment: ci-test
     permissions:
       contents: read
       packages: write
