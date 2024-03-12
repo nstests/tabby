@@ -82,7 +82,7 @@ jobs:
         env:
           IMAGE_SUFFIX: ${{ matrix.image-suffix }}
         run: |
-          echo "IMAGE_NAME=${GITHUB_REPOSITORY,,}${IMAGE_SUFFIX}" >>${GITHUB_ENV}
+          echo "IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/tabby${IMAGE_SUFFIX}" >>${GITHUB_ENV}
 
       - uses: int128/docker-build-cache-config-action@v1
         id: cache
