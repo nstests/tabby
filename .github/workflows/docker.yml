@@ -82,12 +82,12 @@ jobs:
         env:
           IMAGE_SUFFIX: ${{ matrix.image-suffix }}
         run: |
-          echo "IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/tabby${IMAGE_SUFFIX}" >>${GITHUB_ENV}
+          echo "IMAGE_NAME=${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}" >>${GITHUB_ENV}
 
       - uses: int128/docker-build-cache-config-action@v1
         id: cache
         with:
-          image: ghcr.io/${{ env.IMAGE_NAME }}/cache
+          image: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}/cache
 
       - name: Docker meta
         id: meta
@@ -95,7 +95,7 @@ jobs:
         with:
           # list of Docker images to use as base name for tags
           images: |
-            ghcr.io/${{ env.IMAGE_NAME }}
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}
             ${{ env.IMAGE_NAME }}
           # generate Docker tags based on the following events/attributes
           tags: |
