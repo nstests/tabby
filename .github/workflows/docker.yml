@@ -17,6 +17,8 @@ concurrency:
 
 env:
   RUST_TOOLCHAIN: 1.76.0
+  PD: /home/runner/.cache
+  DEVICE: /dev/nvme1n1
 
 jobs:
   release-docker:
@@ -53,6 +55,21 @@ jobs:
           haskell: true
           large-packages: false
           swap-storage: true
+
+      - name: Mount Persistent Disk
+        run: |
+          sudo lsblk
+          sudo mkfs.btrfs $DEVICE || true
+          if [[ -d "$DEVICE/cargo/registry" ]]; then
+            sudo mkdir -p $DEVICE/cargo/registry
+          fi
+          if [[ -d "$DEVICE/target" ]]; then
+            sudo mkdir -p $DEVICE/target
+          fi
+          mkdir -p $PD
+          sudo mount $DEVICE $PD
+          sudo df -hT
+          sudo chown -cR runner $PD
 
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -117,7 +134,9 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: ${{ steps.cache.outputs.cache-from }}
           cache-to: ${{ steps.cache.outputs.cache-to }}
-          build-args: RUST_TOOLCHAIN=${{ env.RUST_TOOLCHAIN }}
+          build-args: |
+            RUST_TOOLCHAIN=${{ env.RUST_TOOLCHAIN }}
+            CACHE=$PD
 
       - name: Docker Hub Description
         uses: peter-evans/dockerhub-description@v3

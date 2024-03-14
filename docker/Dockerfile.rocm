@@ -11,6 +11,8 @@ FROM ${BASE_ROCM_DEV_CONTAINER} AS build
 # Rust toolchain version
 ARG RUST_TOOLCHAIN=stable
 
+ARG CACHE
+
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -36,12 +38,12 @@ RUN mkdir -p target
 
 COPY . .
 
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
+RUN --mount=type=cache,target=$CACHE/cargo/registry \
     --mount=type=cache,target=/root/workspace/target \
     cargo build --features rocm,prod-db --release --package tabby && \
     cp target/release/tabby /opt/tabby/bin/
 
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
+RUN --mount=type=cache,target=$CACHE/cargo/registry \
     --mount=type=cache,target=/root/workspace/target \
     cargo build --features prod-db --release --package tabby && \
     cp target/release/tabby /opt/tabby/bin/tabby-cpu

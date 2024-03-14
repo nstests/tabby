@@ -11,6 +11,8 @@ FROM ${BASE_CUDA_DEV_CONTAINER} as build
 # Rust toolchain version
 ARG RUST_TOOLCHAIN=stable
 
+ARG CACHE
+
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -36,13 +38,13 @@ RUN mkdir -p target
 
 COPY . .
 
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-    --mount=type=cache,target=/root/workspace/target \
+RUN --mount=type=cache,target=$CACHE/cargo/registry \
+    --mount=type=cache,target=$CACHE/target \
     cargo build --features cuda,prod-db --release --package tabby && \
     cp target/release/tabby /opt/tabby/bin/
 
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-    --mount=type=cache,target=/root/workspace/target \
+RUN --mount=type=cache,target=$CACHE/cargo/registry \
+    --mount=type=cache,target=$CACHE/target \
     cargo build --features prod-db --release --package tabby && \
     cp target/release/tabby /opt/tabby/bin/tabby-cpu
 
