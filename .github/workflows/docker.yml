@@ -33,12 +33,13 @@ jobs:
 
     strategy:
       matrix:
-        device-type: [cuda, rocm]
+        # device-type: [cuda, rocm]
+        device-type: [cuda]
         include:
           - device-type: cuda
             image-suffix: ''
-          - device-type: rocm
-            image-suffix: '-rocm'
+          # - device-type: rocm
+          #   image-suffix: '-rocm'
 
     steps:
       - name: Free Disk Space (Ubuntu)
@@ -60,12 +61,6 @@ jobs:
         run: |
           sudo lsblk
           sudo mkfs.btrfs $DEVICE || true
-          if [[ -d "$DEVICE/cargo/registry" ]]; then
-            sudo mkdir -p $DEVICE/cargo/registry
-          fi
-          if [[ -d "$DEVICE/target" ]]; then
-            sudo mkdir -p $DEVICE/target
-          fi
           mkdir -p $PD
           sudo mount $DEVICE $PD
           sudo df -hT
@@ -136,7 +131,7 @@ jobs:
           cache-to: ${{ steps.cache.outputs.cache-to }}
           build-args: |
             RUST_TOOLCHAIN=${{ env.RUST_TOOLCHAIN }}
-            CACHE=$PD
+            CACHE=${{ env.PD }}
 
       - name: Docker Hub Description
         uses: peter-evans/dockerhub-description@v3

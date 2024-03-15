@@ -12,6 +12,9 @@ FROM ${BASE_CUDA_DEV_CONTAINER} as build
 ARG RUST_TOOLCHAIN=stable
 
 ARG CACHE
+RUN mkdir -p $CACHE/cargo/registry
+RUN mkdir -p $CACHE/target
+RUN mkdir -p $CACHE/.cargo
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update && \
@@ -27,26 +30,31 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # setup rust.
-RUN curl https://sh.rustup.rs -sSf | bash -s -- --default-toolchain ${RUST_TOOLCHAIN} -y
-ENV PATH="/root/.cargo/bin:${PATH}"
+ENV CARGO_HOME="$CACHE/.cargo"
+ENV CARGO_TARGET_DIR="$CACHE/target"
+ENV PATH="$CARGO_HOME/bin:${PATH}"
+RUN echo $PATH
+
+RUN curl https://sh.rustup.rs -sSf | bash -s -- --default-toolchain ${RUST_TOOLCHAIN} -y && \
+    . "$CARGO_HOME/env"
+RUN which cargo
 
 WORKDIR /root/workspace
 
 RUN mkdir -p /opt/tabby/bin
 RUN mkdir -p /opt/tabby/lib
-RUN mkdir -p target
 
 COPY . .
 
 RUN --mount=type=cache,target=$CACHE/cargo/registry \
     --mount=type=cache,target=$CACHE/target \
     cargo build --features cuda,prod-db --release --package tabby && \
-    cp target/release/tabby /opt/tabby/bin/
+    cp $CACHE/target/release/tabby /opt/tabby/bin/
 
 RUN --mount=type=cache,target=$CACHE/cargo/registry \
     --mount=type=cache,target=$CACHE/target \
     cargo build --features prod-db --release --package tabby && \
-    cp target/release/tabby /opt/tabby/bin/tabby-cpu
+    cp $CACHE/target/release/tabby /opt/tabby/bin/tabby-cpu
 
 FROM ${BASE_CUDA_RUN_CONTAINER} as runtime
 
