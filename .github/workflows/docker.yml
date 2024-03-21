@@ -139,3 +139,11 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}
+
+      - name: List Block Devices
+        run: |
+          sudo lsblk
+          sudo df -hT
+          sync $PD
+          sudo lsblk
+          sudo df -hT
